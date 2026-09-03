@@ -133,7 +133,7 @@ function blankState(){ return {reports:[], saved:["فروش امروز","گزا�
 
 var init0 = loadLocal() || blankState();
 let state={
-  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local",
+  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local", loading: !!sb,
   reports: init0.reports||[],
   saved: (init0.saved&&init0.saved.length)?init0.saved:["فروش امروز","گزارش جلسه","تمرین"],
   ch:{
@@ -159,9 +159,9 @@ function pushRemote(p){
     .then(function(res){ if(res.error){ console.warn(res.error); setCloud("off"); } else { setCloud("on"); } });
 }
 function pullRemote(){
-  if(!sb){ setCloud("local"); return; }
+  if(!sb){ state.loading=false; setCloud("local"); render(); return; }
   sb.from('app_state').select('data').eq('id',1).maybeSingle().then(function(res){
-    if(res.error){ console.warn(res.error); setCloud("off"); return; }
+    if(res.error){ console.warn(res.error); state.loading=false; setCloud("off"); render(); return; }
     if(res.data && res.data.data){
       var d=res.data.data;
       state.reports=(d.reports||[]).filter(function(r){return r&&r.name;});
@@ -173,8 +173,8 @@ function pullRemote(){
     } else {
       pushRemote(persistable()); // first run: create the row
     }
-    setCloud("on"); render();
-  });
+    state.loading=false; state.cloud="on"; render();
+  }, function(err){ console.warn(err); state.loading=false; setCloud("off"); render(); });
 }
 function setCloud(v){ state.cloud=v; var el=document.getElementById("cloud"); if(el){ el.className="cloud "+(v==="on"?"on":"off"); el.textContent=cloudText(); } }
 function cloudText(){ return state.cloud==="on"?"☁ متصل به فضای ابری (Supabase)":(state.cloud==="local"?"⚠ حالت محلی — کلید Supabase وارد نشده":"⚠ اتصال به فضای ابری برقرار نشد — فعلاً محلی"); }
@@ -280,6 +280,7 @@ function deleteSaved(name){ state.saved=state.saved.filter(function(n){return n!
 
 function render(){
   var app=document.getElementById("app");
+  if(state.loading){ app.innerHTML='<div id="cloud" class="cloud off">'+cloudText()+'</div><div class="center">در حال بارگذاری…</div>'; return; }
   if(!state.ch.configured){ app.innerHTML='<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div><div class="body">'+setupHTML()+'</div>'; bind(); return; }
   var reports = state.reports.length===0
     ? '<div class="empty"><div class="em">📊</div><div style="margin-top:12px;font-size:16px">هنوز گزارشی ثبت نشده.</div><div style="margin-top:4px;font-size:14px">دکمهٔ + بالا را بزنید و از منو انتخاب کنید.</div></div>'

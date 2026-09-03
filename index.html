@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>چلنج ۴۰ روزه — گزارش و پاداش</title>
+<style>
+  :root{
+    --bg:#0E0E10; --card:#1D1D1F; --line:#2A2A2C; --nav:#161618;
+    --text:#FFFFFF; --sub:#8A8A8E; --pink:#F0389A; --blue:#37A9F0;
+    --orange:#FF9F0A; --indigo:#5E5CE6; --sky:#32ADE6; --green:#34C759; --red:#FF453A; --cell:#232326;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:#000;font-family:-apple-system,BlinkMacFont,"SF Pro Display","Segoe UI",Tahoma,sans-serif;}
+  #app{max-width:420px;margin:0 auto;background:var(--bg);min-height:100vh;position:relative;display:flex;flex-direction:column;overflow:hidden;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+
+  .header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0;}
+  .add{width:50px;height:50px;border-radius:50%;background:#2A2A2C;color:var(--text);font-size:26px;}
+  .gear{width:46px;height:46px;border-radius:50%;background:#2A2A2C;color:var(--text);font-size:22px;display:flex;align-items:center;justify-content:center;}
+
+  .body{flex:1;overflow-y:auto;padding-bottom:30px;}
+  .pad{padding:0 22px;}
+  .section{margin:22px 0 16px;font-size:22px;font-weight:800;color:var(--text);}
+
+  .cloud{margin:10px 22px 0;font-size:12px;border-radius:10px;padding:8px 12px;text-align:center;}
+  .cloud.on{background:#12291C;color:var(--green);}
+  .cloud.off{background:#241A12;color:var(--orange);}
+
+  .setup h1{font-size:26px;font-weight:900;margin:20px 0 4px;}
+  .setup .lead{color:var(--sub);font-size:14px;margin-bottom:8px;}
+  .q{margin-top:24px;}
+  .q .label{font-size:16px;font-weight:800;color:var(--text);margin-bottom:12px;}
+  .opt{width:100%;text-align:right;background:var(--card);border:2px solid transparent;border-radius:18px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+  .opt .t{font-size:17px;font-weight:700;color:var(--text);}
+  .opt .d{font-size:13px;color:var(--sub);margin-top:4px;}
+  .opt.sel{border-color:var(--blue);background:#12212F;}
+  .opt .tick{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+  .opt.sel .tick{background:var(--blue);border-color:var(--blue);}
+  .start{width:100%;margin-top:24px;background:var(--green);color:#fff;border-radius:16px;padding:17px;font-size:18px;font-weight:900;}
+  .start:disabled{opacity:.4;}
+
+  .chcard{background:var(--card);border-radius:22px;padding:18px;display:flex;align-items:center;gap:18px;margin-top:8px;}
+  .chring{position:relative;width:120px;height:120px;flex:none;}
+  .chring .big{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .chring .num{font-size:34px;font-weight:900;color:var(--text);line-height:1;}
+  .chring .cap{font-size:12px;color:var(--sub);margin-top:2px;}
+  .chinfo{flex:1;}
+  .chtitle{font-size:18px;font-weight:800;color:var(--text);}
+  .chday{font-size:14px;color:var(--sub);margin:6px 0 12px;}
+  .chday b{color:var(--blue);}
+  .chbtn{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:12px;font-size:15px;font-weight:800;}
+  .chbtn:disabled{opacity:.4;}
+  .chnote{font-size:13px;color:var(--sub);background:#141416;border-radius:12px;padding:10px 12px;text-align:center;}
+
+  .chart{background:var(--card);border-radius:22px;padding:18px 14px 10px;}
+  .plotwrap{position:relative;padding-right:36px;}
+  .plot{position:relative;height:220px;}
+  .grid{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--line);}
+  .ylab{position:absolute;right:-34px;transform:translateY(-50%);font-size:11px;color:var(--sub);width:30px;text-align:left;direction:ltr;}
+  .cols{position:absolute;inset:0;display:flex;align-items:flex-end;gap:12px;padding:0 4px;z-index:2;}
+  .col{flex:1;min-width:34px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:none;padding:0;}
+  .colval{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
+  .vbar{width:100%;max-width:44px;border-radius:6px 6px 0 0;overflow:hidden;display:flex;flex-direction:column;transition:height .25s;}
+  .vseg{width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+  .xrow{display:flex;gap:12px;padding:8px 4px 0;border-top:1px solid var(--line);margin-top:2px;}
+  .xlab{flex:1;min-width:34px;text-align:center;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .empty{background:var(--card);border-radius:20px;margin-top:14px;padding:34px 20px;text-align:center;color:var(--sub);}
+  .empty .em{font-size:40px;}
+
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:40;display:flex;align-items:flex-end;}
+  .sheet{width:100%;background:var(--bg);border-top-left-radius:26px;border-top-right-radius:26px;padding:22px 22px 30px;max-height:88%;overflow-y:auto;}
+  .grip{width:44px;height:5px;background:#3A3A3C;border-radius:999px;margin:0 auto 18px;}
+  .sheet h2{font-size:22px;font-weight:800;color:var(--text);margin:0 0 6px;}
+  .sheet .sub{font-size:13px;color:var(--sub);margin-bottom:16px;}
+  .lvbtn{width:100%;margin-bottom:12px;padding:16px 18px;border-radius:16px;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:space-between;}
+  .lvbtn small{font-size:13px;font-weight:600;opacity:.85;}
+  .drow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 2px;border-top:1px solid var(--line);}
+  .drow:first-of-type{border-top:none;}
+  .dinfo{display:flex;align-items:center;gap:10px;}
+  .dtxt{display:flex;align-items:center;gap:8px;direction:ltr;}
+  .ddate{font-size:15px;color:var(--text);font-weight:600;}
+  .dtime{font-size:12px;color:var(--sub);}
+  .lvchip{font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+  .dacts{display:flex;align-items:center;gap:8px;}
+  .rwbtn{font-size:13px;font-weight:800;padding:10px 14px;border-radius:999px;white-space:nowrap;}
+  .rwbtn.off{background:#15291C;color:var(--green);}
+  .del{width:38px;height:38px;border-radius:50%;background:#2A1210;display:flex;align-items:center;justify-content:center;flex:none;}
+  .lock{width:38px;height:38px;border-radius:50%;background:#1B1B1D;display:flex;align-items:center;justify-content:center;flex:none;}
+  .delall{width:100%;margin-top:18px;background:#2A1210;color:var(--red);border-radius:14px;padding:14px;font-size:15px;font-weight:800;}
+  .addrow{display:flex;gap:10px;}
+  .addrow input{flex:1;background:#141416;border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--text);font-size:16px;outline:none;font-family:inherit;}
+  .addrow button{background:var(--blue);color:#fff;border-radius:14px;padding:0 22px;font-size:16px;font-weight:800;white-space:nowrap;}
+  .divider{height:1px;background:var(--line);margin:22px 0 6px;}
+  .menu-label{font-size:14px;color:var(--sub);margin:14px 0 12px;}
+  .item{background:var(--card);border-radius:16px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;border-right:5px solid var(--blue);}
+  .item .pick{flex:1;text-align:right;background:none;padding:8px 0;color:var(--text);font-size:18px;font-weight:600;}
+  .item .acts{display:flex;align-items:center;gap:8px;flex:none;}
+  .item .go{width:32px;height:32px;border-radius:50%;background:#141416;color:var(--sub);font-size:20px;display:flex;align-items:center;justify-content:center;}
+  .item .del-saved{width:32px;height:32px;border-radius:50%;background:#2A1210;display:flex;align-items:center;justify-content:center;}
+  .menu-empty{color:var(--sub);font-size:14px;text-align:center;padding:20px 0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ================= SUPABASE CONFIG ================= */
+/* آدرس پروژهٔ شما از قبل گذاشته شده. فقط کلید anon (عمومی) را جای‌گزین کنید. */
+const SUPABASE_URL      = "https://tfxhdjwnqhpmeytorbqg.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZ3ZkdHF5YmJmem1uY3l2dG1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA1MTYsImV4cCI6MjEwMzk2NjUxNn0.p_75r-Wk3hdmJ91fr8u0Hz3GO3rx76u8PvV4aaHyHsc";
+/* =================================================== */
+
+var sb=null;
+try{
+  if(window.supabase && SUPABASE_ANON_KEY.indexOf("PASTE")<0){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.warn("Supabase init failed:", e); }
+
+const COLORS=["#FF9F0A","#5E5CE6","#32ADE6","#F0389A","#34C759","#37A9F0","#BF5AF2","#FFD60A"];
+const RED={1:"#FF3B30",2:"#E22C1B",3:"#6B0F0F"}, RED_TXT={1:"#fff",2:"#fff",3:"#fff"};
+const LV_NAME={1:"سطح ۱",2:"سطح ۲",3:"سطح ۳"}, LV_DESC={1:"قرمز نئونی",2:"قرمز",3:"قرمز خونین"};
+const N=40;
+
+/* ---------- storage: localStorage cache + Supabase sync ---------- */
+const LS_KEY="leitnerChallengeState";
+function loadLocal(){ try{ var v=localStorage.getItem(LS_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function saveLocal(d){ try{ localStorage.setItem(LS_KEY, JSON.stringify(d)); }catch(e){} }
+function blankState(){ return {reports:[], saved:["فروش امروز","گزارش جلسه","تمرین"], ch:{configured:false,direction:null,mode:null,start:null,done:[]}}; }
+
+var init0 = loadLocal() || blankState();
+let state={
+  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local",
+  reports: init0.reports||[],
+  saved: (init0.saved&&init0.saved.length)?init0.saved:["فروش امروز","گزارش جلسه","تمرین"],
+  ch:{
+    configured: !!(init0.ch&&init0.ch.configured),
+    direction: init0.ch?init0.ch.direction:null,
+    mode: init0.ch?init0.ch.mode:null,
+    start: init0.ch?init0.ch.start:null,
+    done: (init0.ch&&init0.ch.done)||[],
+    dDir:null, dMode:null
+  }
+};
+// cleanup broken entries
+state.reports=state.reports.filter(function(r){return r&&r.name&&r.name!=="undefined"&&r.name!=="null";});
+state.saved=state.saved.filter(function(n){return n&&n!=="undefined"&&n!=="null";});
+
+function persistable(){ return {reports:state.reports, saved:state.saved, ch:{configured:state.ch.configured,direction:state.ch.direction,mode:state.ch.mode,start:state.ch.start,done:state.ch.done}}; }
+function save(){ var p=persistable(); saveLocal(p); pushRemote(p); }
+function saveCh(){ save(); }
+
+function pushRemote(p){
+  if(!sb) return;
+  sb.from('app_state').upsert({id:1, data:p, updated_at:new Date().toISOString()})
+    .then(function(res){ if(res.error){ console.warn(res.error); setCloud("off"); } else { setCloud("on"); } });
+}
+function pullRemote(){
+  if(!sb){ setCloud("local"); return; }
+  sb.from('app_state').select('data').eq('id',1).maybeSingle().then(function(res){
+    if(res.error){ console.warn(res.error); setCloud("off"); return; }
+    if(res.data && res.data.data){
+      var d=res.data.data;
+      state.reports=(d.reports||[]).filter(function(r){return r&&r.name;});
+      state.saved=(d.saved&&d.saved.length)?d.saved:state.saved;
+      var c=d.ch||{};
+      state.ch.configured=!!c.configured; state.ch.direction=c.direction||null;
+      state.ch.mode=c.mode||null; state.ch.start=c.start||null; state.ch.done=c.done||[];
+      saveLocal(persistable());
+    } else {
+      pushRemote(persistable()); // first run: create the row
+    }
+    setCloud("on"); render();
+  });
+}
+function setCloud(v){ state.cloud=v; var el=document.getElementById("cloud"); if(el){ el.className="cloud "+(v==="on"?"on":"off"); el.textContent=cloudText(); } }
+function cloudText(){ return state.cloud==="on"?"☁ متصل به فضای ابری (Supabase)":(state.cloud==="local"?"⚠ حالت محلی — کلید Supabase وارد نشده":"⚠ اتصال به فضای ابری برقرار نشد — فعلاً محلی"); }
+
+function today(){ return new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit"}); }
+function nowTime(){ return new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}); }
+function colorFor(name){ const i=state.saved.indexOf(name); return COLORS[(i<0?0:i)%COLORS.length]; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+var LOCK='<span class="lock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="var(--sub)" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="var(--sub)" stroke-width="1.8"/></svg></span>';
+var TRASH='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function midnight(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+function chAutoDay(){ if(!state.ch.start) return 0; var diff=Math.floor((midnight(new Date())-midnight(state.ch.start))/86400000); return Math.max(0,Math.min(N,diff+1)); }
+function chCompleted(){ return state.ch.mode==="auto" ? chAutoDay() : state.ch.done.length; }
+function ringSVG(pct,size,stroke,color){ var r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-pct/100);
+  return '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="#2A2A2C" stroke-width="'+stroke+'" fill="none"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="'+color+'" stroke-width="'+stroke+'" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg>'; }
+
+function setupHTML(){
+  function opt(g,v,t,d,sel){ return '<button class="opt'+(sel?' sel':'')+'" data-'+g+'="'+v+'"><div><div class="t">'+t+'</div><div class="d">'+d+'</div></div><div class="tick">'+(sel?'✓':'')+'</div></button>'; }
+  var ready=state.ch.dDir&&state.ch.dMode;
+  return '<div class="pad setup"><h1>چلنج ۴۰ روزه</h1><div class="lead">اول چلنج را تنظیم کنید، بعد وارد بخش گزارش‌ها می‌شوید.</div>'
+    +'<div class="q"><div class="label">۱) جهت شمارش</div>'
+    +opt("chdir","down","از ۴۰ به پایین","شمارش معکوس — «چند روز مانده»",state.ch.dDir==="down")
+    +opt("chdir","up","از پایین به ۴۰","رو به بالا — «چند روز گذشته»",state.ch.dDir==="up")+'</div>'
+    +'<div class="q"><div class="label">۲) انتخاب روزها</div>'
+    +opt("chmode","auto","خودکار","روزها بر اساس تاریخ پیش می‌روند",state.ch.dMode==="auto")
+    +opt("chmode","manual","دستی","هر روز را خودتان علامت می‌زنید",state.ch.dMode==="manual")+'</div>'
+    +'<button class="start" data-act="ch-start" '+(ready?"":"disabled")+'>شروع چلنج</button></div>';
+}
+function challengeCardHTML(){
+  var done=chCompleted(), remaining=N-done, ad=chAutoDay();
+  var big=state.ch.direction==="down"?remaining:done;
+  var cap=state.ch.direction==="down"?"روز مانده":"روز انجام‌شده";
+  var pct=done/N*100;
+  var action = state.ch.mode==="auto"
+    ? '<div class="chnote">حالت خودکار — امروز روز '+(ad||0)+' از ۴۰</div>'
+    : '<button class="chbtn" data-act="ch-marknext" '+(done>=N?"disabled":"")+'>'+(done>=N?'چلنج کامل شد! 🎉':'ثبت روز امروز (روز '+(done+1)+')')+'</button>';
+  return '<div class="chcard"><div class="chring">'+ringSVG(pct,120,12,"var(--green)")
+    +'<div class="big"><div class="num">'+big+'</div><div class="cap">'+cap+'</div></div></div>'
+    +'<div class="chinfo"><div class="chtitle">چلنج ۴۰ روزه</div>'
+    +'<div class="chday"><b>'+done+'</b> از ۴۰ · '+Math.round(pct)+'٪</div>'+action+'</div></div>';
+}
+
+function typeStats(){
+  var m={},order=[];
+  state.reports.forEach(function(r){
+    if(!m[r.name]){ m[r.name]={name:r.name,total:0,rewarded:0,lv:{1:0,2:0,3:0},color:colorFor(r.name)}; order.push(r.name); }
+    var o=m[r.name]; o.total++; if(r.rewarded) o.rewarded++; else { var L=r.level||1; o.lv[L]=(o.lv[L]||0)+1; }
+  });
+  return order.map(function(n){return m[n];});
+}
+function chartHTML(){
+  var stats=typeStats(); if(stats.length===0) return "";
+  var maxV=Math.max.apply(null,stats.map(function(s){return s.total;}));
+  var step=Math.max(1,Math.ceil(maxV/4)), top=step*4, grid="";
+  for(var i=0;i<=4;i++){ var val=step*i,y=(1-val/top)*100; grid+='<div class="grid" style="top:'+y+'%"></div><div class="ylab" style="top:'+y+'%">'+val+'</div>'; }
+  var cols=stats.map(function(s){
+    var barH=(s.total/top)*100,segs="";
+    [3,2,1].forEach(function(L){ var cnt=s.lv[L]; if(cnt>0){ var h=cnt/s.total*100; segs+='<div class="vseg" style="height:'+h+'%;background:'+RED[L]+';color:'+RED_TXT[L]+'">'+(h>16?cnt:"")+'</div>'; }});
+    if(s.rewarded>0){ var hr=s.rewarded/s.total*100; segs+='<div class="vseg" style="height:'+hr+'%;background:'+s.color+';color:rgba(255,255,255,.9)">'+(hr>16?s.rewarded:"")+'</div>'; }
+    return '<button class="col" data-bar="'+esc(s.name)+'"><div class="colval">'+s.total+'</div><div class="vbar" style="height:'+barH+'%">'+segs+'</div></button>';
+  }).join("");
+  var xlabs=stats.map(function(s){return '<div class="xlab">'+esc(s.name)+'</div>';}).join("");
+  return '<div class="chart"><div class="plotwrap"><div class="plot">'+grid+'<div class="cols">'+cols+'</div></div><div class="xrow">'+xlabs+'</div></div></div>';
+}
+function detailSheetHTML(){
+  var name=state.detailFor,c=colorFor(name);
+  var entries=state.reports.filter(function(r){return r.name===name;});
+  var rows=entries.map(function(r){
+    var on=!!r.rewarded,L=r.level||1;
+    var chip=on?'<span class="lvchip" style="background:'+c+'22;color:'+c+'">'+LV_NAME[L]+'</span>':'<span class="lvchip" style="background:'+RED[L]+'33;color:'+RED[L]+'">'+LV_NAME[L]+'</span>';
+    var btn=on?'<button class="rwbtn" style="background:'+c+'22;color:'+c+'" data-rw="'+r.id+'">پاداش داده شد ✓</button>':'<button class="rwbtn off" data-rw="'+r.id+'">پاداش گرفت</button>';
+    var act=on?LOCK:'<button class="del" data-del="'+r.id+'">'+TRASH+'</button>';
+    return '<div class="drow"><div class="dinfo">'+chip+'<div class="dtxt"><span class="ddate">'+esc(r.date)+'</span><span class="dtime">'+esc(r.time||"")+'</span></div></div><div class="dacts">'+btn+act+'</div></div>';
+  }).join("");
+  var hasUn=entries.some(function(e){return !e.rewarded;});
+  var delAll=hasUn?'<button class="delall" data-delall="'+esc(name)+'">حذف ثبت‌های پاداش‌نگرفته</button>':'';
+  return '<div class="overlay" data-act="close-detail"><div class="sheet" data-stop="1"><div class="grip"></div><h2 style="color:'+c+'">'+esc(name)+'</h2>'+rows+delAll+'</div></div>';
+}
+function levelSheetHTML(){
+  var name=state.pendingLog;
+  var btns=[1,2,3].map(function(L){return '<button class="lvbtn" data-level="'+L+'" style="background:'+RED[L]+';color:'+RED_TXT[L]+'"><span>'+LV_NAME[L]+'</span><small>'+LV_DESC[L]+'</small></button>';}).join("");
+  return '<div class="overlay" data-act="close-level"><div class="sheet" data-stop="1"><div class="grip"></div><h2>سطح پاداش</h2><div class="sub">برای «'+esc(name)+'» کدام سطح پاداش؟</div>'+btns+'</div></div>';
+}
+function menuHTML(){
+  var items;
+  if(state.saved.length===0){ items='<div class="menu-empty">هنوز گزارشی ذخیره نشده. یکی بنویسید و اضافه کنید.</div>'; }
+  else { items=state.saved.map(function(nm){ var c=colorFor(nm);
+    return '<div class="item" style="border-right-color:'+c+'"><button class="pick" data-pick="'+esc(nm)+'">'+esc(nm)+'</button><div class="acts"><button class="go" data-pick="'+esc(nm)+'">+</button><button class="del-saved" data-delsaved="'+esc(nm)+'">'+TRASH+'</button></div></div>';
+  }).join(""); }
+  return '<div class="overlay" data-act="close-menu"><div class="sheet" data-stop="1"><div class="grip"></div><h2>گزارش</h2><div class="menu-label">افزودن گزارش جدید</div><div class="addrow"><input id="f-new" placeholder="نام گزارش جدید…" value="'+esc(state.draft)+'"/><button data-act="add-new">افزودن</button></div><div class="divider"></div><div class="menu-label">گزارش‌های قبلی — برای ثبت انتخاب کنید، یا با سطل حذف کنید</div>'+items+'</div></div>';
+}
+
+function pickReport(name){ name=(name||"").trim(); if(!name) return; state.pendingLog=name; state.showMenu=false; state.draft=""; render(); }
+function chooseLevel(L){ var name=state.pendingLog; if(!name) return; if(!state.saved.includes(name)) state.saved.push(name);
+  state.reports.unshift({id:Date.now(),name:name,date:today(),time:nowTime(),level:parseInt(L),rewarded:false}); state.pendingLog=null; save(); render(); }
+function toggleReward(id){ id=parseInt(id); state.reports=state.reports.map(function(r){return r.id===id?Object.assign({},r,{rewarded:!r.rewarded}):r;}); save(); render(); }
+function deleteReport(id){ id=parseInt(id); var t=state.reports.filter(function(r){return r.id===id;})[0]; if(t&&t.rewarded) return;
+  state.reports=state.reports.filter(function(r){return r.id!==id;}); if(state.detailFor&&!state.reports.some(function(r){return r.name===state.detailFor;})) state.detailFor=null; save(); render(); }
+function deleteAll(name){ state.reports=state.reports.filter(function(r){return !(r.name===name&&!r.rewarded);}); if(!state.reports.some(function(r){return r.name===name;})) state.detailFor=null; save(); render(); }
+function deleteSaved(name){ state.saved=state.saved.filter(function(n){return n!==name;}); save(); render(); }
+
+function render(){
+  var app=document.getElementById("app");
+  if(!state.ch.configured){ app.innerHTML='<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div><div class="body">'+setupHTML()+'</div>'; bind(); return; }
+  var reports = state.reports.length===0
+    ? '<div class="empty"><div class="em">📊</div><div style="margin-top:12px;font-size:16px">هنوز گزارشی ثبت نشده.</div><div style="margin-top:4px;font-size:14px">دکمهٔ + بالا را بزنید و از منو انتخاب کنید.</div></div>'
+    : chartHTML();
+  var body='<div class="pad">'+challengeCardHTML()+'<div class="section">گزارش‌ها</div>'+reports+'</div>';
+  app.innerHTML='<div class="header"><button class="gear" data-act="ch-settings">⚙</button><button class="add" data-act="open-menu">+</button></div>'
+    +'<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div>'
+    +'<div class="body">'+body+'</div>'
+    +(state.showMenu?menuHTML():"")+(state.pendingLog?levelSheetHTML():"")+(state.detailFor?detailSheetHTML():"");
+  bind();
+}
+
+function bind(){
+  document.querySelectorAll("[data-chdir]").forEach(function(b){ b.onclick=function(){ state.ch.dDir=b.dataset.chdir; render(); }; });
+  document.querySelectorAll("[data-chmode]").forEach(function(b){ b.onclick=function(){ state.ch.dMode=b.dataset.chmode; render(); }; });
+  var st=document.querySelector('[data-act="ch-start"]');
+  if(st) st.onclick=function(){ var c=state.ch; if(!c.dDir||!c.dMode) return; c.direction=c.dDir; c.mode=c.dMode;
+    if(c.mode==="auto"){ var t=new Date(); c.start=t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate(); } c.done=[]; c.configured=true; saveCh(); render(); };
+  var gs=document.querySelector('[data-act="ch-settings"]');
+  if(gs) gs.onclick=function(){ var c=state.ch; c.configured=false; c.dDir=c.direction; c.dMode=c.mode; saveCh(); render(); };
+  var mn=document.querySelector('[data-act="ch-marknext"]');
+  if(mn) mn.onclick=function(){ for(var d=1;d<=N;d++){ if(state.ch.done.indexOf(d)<0){ state.ch.done.push(d); break; } } saveCh(); render(); };
+
+  var open=document.querySelector('[data-act="open-menu"]'); if(open) open.onclick=function(){ state.showMenu=true; state.draft=""; render(); };
+  var ovm=document.querySelector('[data-act="close-menu"]'); if(ovm) ovm.onclick=function(e){ if(e.target===ovm){ var el=document.getElementById("f-new"); state.draft=el?el.value:""; state.showMenu=false; render(); } };
+  var ovl=document.querySelector('[data-act="close-level"]'); if(ovl) ovl.onclick=function(e){ if(e.target===ovl){ state.pendingLog=null; render(); } };
+  var ovd=document.querySelector('[data-act="close-detail"]'); if(ovd) ovd.onclick=function(e){ if(e.target===ovd){ state.detailFor=null; render(); } };
+  document.querySelectorAll('[data-stop="1"]').forEach(function(s){ s.onclick=function(e){ e.stopPropagation(); }; });
+  document.querySelectorAll("[data-bar]").forEach(function(b){ b.onclick=function(){ state.detailFor=b.dataset.bar; render(); }; });
+  document.querySelectorAll("[data-level]").forEach(function(b){ b.onclick=function(){ chooseLevel(b.dataset.level); }; });
+  document.querySelectorAll("[data-rw]").forEach(function(b){ b.onclick=function(){ toggleReward(b.dataset.rw); }; });
+  document.querySelectorAll("[data-del]").forEach(function(b){ b.onclick=function(){ deleteReport(b.dataset.del); }; });
+  document.querySelectorAll("[data-delall]").forEach(function(b){ b.onclick=function(){ deleteAll(b.dataset.delall); }; });
+  document.querySelectorAll("[data-pick]").forEach(function(b){ b.onclick=function(){ pickReport(b.dataset.pick); }; });
+  document.querySelectorAll("[data-delsaved]").forEach(function(b){ b.onclick=function(e){ e.stopPropagation(); deleteSaved(b.dataset.delsaved); }; });
+  var addNew=document.querySelector('[data-act="add-new"]'); if(addNew) addNew.onclick=function(){ var el=document.getElementById("f-new"); pickReport(el?el.value:""); };
+  var inp=document.getElementById("f-new"); if(inp) inp.onkeydown=function(e){ if(e.key==="Enter") pickReport(inp.value); };
+}
+
+render();
+pullRemote();
+</script>
+</body>
+</html>

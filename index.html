@@ -133,7 +133,7 @@ function blankState(){ return {reports:[], saved:["فروش امروز","گزا�
 
 var init0 = loadLocal() || blankState();
 let state={
-  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local", loading: !!sb,
+  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local", loading: !!sb, editingCh:false, askApply:false,
   reports: init0.reports||[],
   saved: (init0.saved&&init0.saved.length)?init0.saved:["فروش امروز","گزارش جلسه","تمرین"],
   ch:{
@@ -193,6 +193,16 @@ function chCompleted(){ return state.ch.mode==="auto" ? chAutoDay() : state.ch.d
 function ringSVG(pct,size,stroke,color){ var r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-pct/100);
   return '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="#2A2A2C" stroke-width="'+stroke+'" fill="none"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="'+color+'" stroke-width="'+stroke+'" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg>'; }
 
+
+function applySheetHTML(){
+  return '<div class="overlay" data-act="close-apply"><div class="sheet" data-stop="1"><div class="grip"></div>'
+    +'<h2>تغییرات چطور اعمال شود؟</h2>'
+    +'<div class="sub">می‌خواهید چلنج فعلی ادامه پیدا کند یا از روز اول شروع شود؟</div>'
+    +'<button class="lvbtn" data-act="apply-keep" style="background:#15291C;color:var(--green)"><span>ادامهٔ چلنج فعلی</span><small>روزها و تاریخ شروع حفظ می‌شود</small></button>'
+    +'<button class="lvbtn" data-act="apply-restart" style="background:#2A1210;color:var(--red)"><span>شروع از روز اول</span><small>همه‌چیز صفر می‌شود</small></button>'
+    +'</div></div>';
+}
+
 function setupHTML(){
   function opt(g,v,t,d,sel){ return '<button class="opt'+(sel?' sel':'')+'" data-'+g+'="'+v+'"><div><div class="t">'+t+'</div><div class="d">'+d+'</div></div><div class="tick">'+(sel?'✓':'')+'</div></button>'; }
   var ready=state.ch.dDir&&state.ch.dMode;
@@ -203,7 +213,7 @@ function setupHTML(){
     +'<div class="q"><div class="label">۲) انتخاب روزها</div>'
     +opt("chmode","auto","خودکار","روزها بر اساس تاریخ پیش می‌روند",state.ch.dMode==="auto")
     +opt("chmode","manual","دستی","هر روز را خودتان علامت می‌زنید",state.ch.dMode==="manual")+'</div>'
-    +'<button class="start" data-act="ch-start" '+(ready?"":"disabled")+'>شروع چلنج</button></div>';
+    +'<button class="start" data-act="ch-start" '+(ready?"":"disabled")+'>'+(state.editingCh?'ذخیرهٔ تغییرات':'شروع چلنج')+'</button></div>';
 }
 function challengeCardHTML(){
   var done=chCompleted(), remaining=N-done, ad=chAutoDay();
@@ -281,7 +291,7 @@ function deleteSaved(name){ state.saved=state.saved.filter(function(n){return n!
 function render(){
   var app=document.getElementById("app");
   if(state.loading){ app.innerHTML='<div id="cloud" class="cloud off">'+cloudText()+'</div><div class="center">در حال بارگذاری…</div>'; return; }
-  if(!state.ch.configured){ app.innerHTML='<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div><div class="body">'+setupHTML()+'</div>'; bind(); return; }
+  if(!state.ch.configured){ app.innerHTML='<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div><div class="body">'+setupHTML()+'</div>'+(state.askApply?applySheetHTML():""); bind(); return; }
   var reports = state.reports.length===0
     ? '<div class="empty"><div class="em">📊</div><div style="margin-top:12px;font-size:16px">هنوز گزارشی ثبت نشده.</div><div style="margin-top:4px;font-size:14px">دکمهٔ + بالا را بزنید و از منو انتخاب کنید.</div></div>'
     : chartHTML();
@@ -289,7 +299,7 @@ function render(){
   app.innerHTML='<div class="header"><button class="gear" data-act="ch-settings">⚙</button><button class="add" data-act="open-menu">+</button></div>'
     +'<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div>'
     +'<div class="body">'+body+'</div>'
-    +(state.showMenu?menuHTML():"")+(state.pendingLog?levelSheetHTML():"")+(state.detailFor?detailSheetHTML():"");
+    +(state.showMenu?menuHTML():"")+(state.pendingLog?levelSheetHTML():"")+(state.detailFor?detailSheetHTML():"")+(state.askApply?applySheetHTML():"");
   bind();
 }
 
@@ -297,10 +307,25 @@ function bind(){
   document.querySelectorAll("[data-chdir]").forEach(function(b){ b.onclick=function(){ state.ch.dDir=b.dataset.chdir; render(); }; });
   document.querySelectorAll("[data-chmode]").forEach(function(b){ b.onclick=function(){ state.ch.dMode=b.dataset.chmode; render(); }; });
   var st=document.querySelector('[data-act="ch-start"]');
-  if(st) st.onclick=function(){ var c=state.ch; if(!c.dDir||!c.dMode) return; c.direction=c.dDir; c.mode=c.dMode;
-    if(c.mode==="auto"){ var t=new Date(); c.start=t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate(); } c.done=[]; c.configured=true; saveCh(); render(); };
+  if(st) st.onclick=function(){ var c=state.ch; if(!c.dDir||!c.dMode) return;
+    if(state.editingCh){ state.askApply=true; render(); return; }   // existing challenge -> ask continue/restart
+    // first time -> start fresh
+    c.direction=c.dDir; c.mode=c.dMode;
+    if(c.mode==="auto"){ var t=new Date(); c.start=t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate(); }
+    c.done=[]; c.configured=true; state.editingCh=false; saveCh(); render(); };
+  var keep=document.querySelector('[data-act="apply-keep"]');
+  if(keep) keep.onclick=function(){ var c=state.ch; c.direction=c.dDir; c.mode=c.dMode;
+    // continue: keep start date & done. If switching to auto but no start yet, set today.
+    if(c.mode==="auto" && !c.start){ var t=new Date(); c.start=t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate(); }
+    c.configured=true; state.editingCh=false; state.askApply=false; saveCh(); render(); };
+  var rest=document.querySelector('[data-act="apply-restart"]');
+  if(rest) rest.onclick=function(){ var c=state.ch; c.direction=c.dDir; c.mode=c.dMode;
+    if(c.mode==="auto"){ var t=new Date(); c.start=t.getFullYear()+"-"+(t.getMonth()+1)+"-"+t.getDate(); }
+    c.done=[]; c.configured=true; state.editingCh=false; state.askApply=false; saveCh(); render(); };
+  var ova=document.querySelector('[data-act="close-apply"]');
+  if(ova) ova.onclick=function(e){ if(e.target===ova){ state.askApply=false; render(); } };
   var gs=document.querySelector('[data-act="ch-settings"]');
-  if(gs) gs.onclick=function(){ var c=state.ch; c.configured=false; c.dDir=c.direction; c.dMode=c.mode; saveCh(); render(); };
+  if(gs) gs.onclick=function(){ var c=state.ch; state.editingCh=true; c.configured=false; c.dDir=c.direction; c.dMode=c.mode; render(); };
   var mn=document.querySelector('[data-act="ch-marknext"]');
   if(mn) mn.onclick=function(){ for(var d=1;d<=N;d++){ if(state.ch.done.indexOf(d)<0){ state.ch.done.push(d); break; } } saveCh(); render(); };
 

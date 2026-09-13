@@ -61,7 +61,7 @@
   .cols{position:absolute;inset:0;display:flex;align-items:flex-end;gap:12px;padding:0 4px;z-index:2;}
   .col{flex:1;min-width:34px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:none;padding:0;}
   .colval{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px;}
-  .vbar{width:100%;max-width:44px;border-radius:6px 6px 0 0;overflow:hidden;display:flex;flex-direction:column;transition:height .25s;}
+  .vbar{width:100%;max-width:44px;border-radius:6px 6px 0 0;overflow:hidden;display:flex;flex-direction:column;transition:height .95s cubic-bezier(.22,1,.36,1);}
   .vseg{width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
   .xrow{display:flex;gap:12px;padding:8px 4px 0;border-top:1px solid var(--line);margin-top:2px;}
   .xlab{flex:1;min-width:34px;text-align:center;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -99,6 +99,8 @@
   .item .go{width:32px;height:32px;border-radius:50%;background:#141416;color:var(--sub);font-size:20px;display:flex;align-items:center;justify-content:center;}
   .item .del-saved{width:32px;height:32px;border-radius:50%;background:#2A1210;display:flex;align-items:center;justify-content:center;}
   .menu-empty{color:var(--sub);font-size:14px;text-align:center;padding:20px 0;}
+  #chArc{transition:stroke-dashoffset 1.15s cubic-bezier(.22,1,.36,1);}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -133,7 +135,7 @@ function blankState(){ return {reports:[], saved:["فروش امروز","گزا�
 
 var init0 = loadLocal() || blankState();
 let state={
-  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local", loading: !!sb, editingCh:false, askApply:false,
+  showMenu:false, detailFor:null, pendingLog:null, draft:"", cloud: sb?"…":"local", loading: !!sb, editingCh:false, askApply:false, introDone:false,
   reports: init0.reports||[],
   saved: (init0.saved&&init0.saved.length)?init0.saved:["فروش امروز","گزارش جلسه","تمرین"],
   ch:{
@@ -190,8 +192,9 @@ var TRASH='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="
 function midnight(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
 function chAutoDay(){ if(!state.ch.start) return 0; var diff=Math.floor((midnight(new Date())-midnight(state.ch.start))/86400000); return Math.max(0,Math.min(N,diff+1)); }
 function chCompleted(){ return state.ch.mode==="auto" ? chAutoDay() : state.ch.done.length; }
-function ringSVG(pct,size,stroke,color){ var r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-pct/100);
-  return '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="#2A2A2C" stroke-width="'+stroke+'" fill="none"/><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="'+color+'" stroke-width="'+stroke+'" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/></svg>'; }
+function ringSVG(pct,size,stroke,color,arcId,animate){ var r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-pct/100);
+  var initOff=animate?c:off, idA=arcId?(' id="'+arcId+'"'):"", dF=arcId?(' data-final="'+off+'"'):"";
+  return '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)"><circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="#2A2A2C" stroke-width="'+stroke+'" fill="none"/><circle'+idA+dF+' cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" stroke="'+color+'" stroke-width="'+stroke+'" fill="none" stroke-dasharray="'+c+'" stroke-dashoffset="'+initOff+'" stroke-linecap="round"/></svg>'; }
 
 
 function applySheetHTML(){
@@ -215,7 +218,7 @@ function setupHTML(){
     +opt("chmode","manual","دستی","هر روز را خودتان علامت می‌زنید",state.ch.dMode==="manual")+'</div>'
     +'<button class="start" data-act="ch-start" '+(ready?"":"disabled")+'>'+(state.editingCh?'ذخیرهٔ تغییرات':'شروع چلنج')+'</button></div>';
 }
-function challengeCardHTML(){
+function challengeCardHTML(anim){
   var done=chCompleted(), remaining=N-done, ad=chAutoDay();
   var big=state.ch.direction==="down"?remaining:done;
   var cap=state.ch.direction==="down"?"روز مانده":"روز انجام‌شده";
@@ -223,8 +226,9 @@ function challengeCardHTML(){
   var action = state.ch.mode==="auto"
     ? '<div class="chnote">حالت خودکار — امروز روز '+(ad||0)+' از ۴۰</div>'
     : '<button class="chbtn" data-act="ch-marknext" '+(done>=N?"disabled":"")+'>'+(done>=N?'چلنج کامل شد! 🎉':'ثبت روز امروز (روز '+(done+1)+')')+'</button>';
-  return '<div class="chcard"><div class="chring">'+ringSVG(pct,120,12,"var(--green)")
-    +'<div class="big"><div class="num">'+big+'</div><div class="cap">'+cap+'</div></div></div>'
+  var cardStyle=anim?' style="animation:rise .6s ease both"':"";
+  return '<div class="chcard"'+cardStyle+'><div class="chring">'+ringSVG(pct,120,12,"var(--green)","chArc",anim)
+    +'<div class="big"><div class="num" id="chNum" data-final="'+big+'">'+(anim?0:big)+'</div><div class="cap">'+cap+'</div></div></div>'
     +'<div class="chinfo"><div class="chtitle">چلنج ۴۰ روزه</div>'
     +'<div class="chday"><b>'+done+'</b> از ۴۰ · '+Math.round(pct)+'٪</div>'+action+'</div></div>';
 }
@@ -237,19 +241,21 @@ function typeStats(){
   });
   return order.map(function(n){return m[n];});
 }
-function chartHTML(){
+function chartHTML(anim){
   var stats=typeStats(); if(stats.length===0) return "";
   var maxV=Math.max.apply(null,stats.map(function(s){return s.total;}));
   var step=Math.max(1,Math.ceil(maxV/4)), top=step*4, grid="";
   for(var i=0;i<=4;i++){ var val=step*i,y=(1-val/top)*100; grid+='<div class="grid" style="top:'+y+'%"></div><div class="ylab" style="top:'+y+'%">'+val+'</div>'; }
-  var cols=stats.map(function(s){
+  var cols=stats.map(function(s,idx){
     var barH=(s.total/top)*100,segs="";
     [3,2,1].forEach(function(L){ var cnt=s.lv[L]; if(cnt>0){ var h=cnt/s.total*100; segs+='<div class="vseg" style="height:'+h+'%;background:'+RED[L]+';color:'+RED_TXT[L]+'">'+(h>16?cnt:"")+'</div>'; }});
     if(s.rewarded>0){ var hr=s.rewarded/s.total*100; segs+='<div class="vseg" style="height:'+hr+'%;background:'+s.color+';color:rgba(255,255,255,.9)">'+(hr>16?s.rewarded:"")+'</div>'; }
-    return '<button class="col" data-bar="'+esc(s.name)+'"><div class="colval">'+s.total+'</div><div class="vbar" style="height:'+barH+'%">'+segs+'</div></button>';
+    var initH=anim?0:barH, delay=anim?(idx*90):0;
+    return '<button class="col" data-bar="'+esc(s.name)+'"><div class="colval">'+s.total+'</div><div class="vbar" data-h="'+barH+'" style="height:'+initH+'%;transition-delay:'+delay+'ms">'+segs+'</div></button>';
   }).join("");
   var xlabs=stats.map(function(s){return '<div class="xlab">'+esc(s.name)+'</div>';}).join("");
-  return '<div class="chart"><div class="plotwrap"><div class="plot">'+grid+'<div class="cols">'+cols+'</div></div><div class="xrow">'+xlabs+'</div></div></div>';
+  var cStyle=anim?' style="animation:rise .6s ease both;animation-delay:.12s"':"";
+  return '<div class="chart"'+cStyle+'><div class="plotwrap"><div class="plot">'+grid+'<div class="cols">'+cols+'</div></div><div class="xrow">'+xlabs+'</div></div></div>';
 }
 function detailSheetHTML(){
   var name=state.detailFor,c=colorFor(name);
@@ -288,19 +294,34 @@ function deleteReport(id){ id=parseInt(id); var t=state.reports.filter(function(
 function deleteAll(name){ state.reports=state.reports.filter(function(r){return !(r.name===name&&!r.rewarded);}); if(!state.reports.some(function(r){return r.name===name;})) state.detailFor=null; save(); render(); }
 function deleteSaved(name){ state.saved=state.saved.filter(function(n){return n!==name;}); save(); render(); }
 
+function countUp(el,target,dur){
+  var start=performance.now();
+  function step(now){ var p=Math.min(1,(now-start)/dur); var e=1-Math.pow(1-p,3); el.textContent=Math.round(e*target); if(p<1) requestAnimationFrame(step); else el.textContent=target; }
+  requestAnimationFrame(step);
+}
+function playIntro(){
+  var arc=document.getElementById("chArc");
+  if(arc){ arc.style.strokeDashoffset=arc.getAttribute("data-final"); }
+  var numEl=document.getElementById("chNum");
+  if(numEl){ countUp(numEl, parseInt(numEl.getAttribute("data-final"))||0, 1100); }
+  document.querySelectorAll(".vbar[data-h]").forEach(function(v){ v.style.height=v.getAttribute("data-h")+"%"; });
+}
+
 function render(){
   var app=document.getElementById("app");
   if(state.loading){ app.innerHTML='<div id="cloud" class="cloud off">'+cloudText()+'</div><div class="center">در حال بارگذاری…</div>'; return; }
   if(!state.ch.configured){ app.innerHTML='<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div><div class="body">'+setupHTML()+'</div>'+(state.askApply?applySheetHTML():""); bind(); return; }
+  var anim = !state.introDone;
   var reports = state.reports.length===0
     ? '<div class="empty"><div class="em">📊</div><div style="margin-top:12px;font-size:16px">هنوز گزارشی ثبت نشده.</div><div style="margin-top:4px;font-size:14px">دکمهٔ + بالا را بزنید و از منو انتخاب کنید.</div></div>'
-    : chartHTML();
-  var body='<div class="pad">'+challengeCardHTML()+'<div class="section">گزارش‌ها</div>'+reports+'</div>';
+    : chartHTML(anim);
+  var body='<div class="pad">'+challengeCardHTML(anim)+'<div class="section">گزارش‌ها</div>'+reports+'</div>';
   app.innerHTML='<div class="header"><button class="gear" data-act="ch-settings">⚙</button><button class="add" data-act="open-menu">+</button></div>'
     +'<div id="cloud" class="cloud '+(state.cloud==="on"?"on":"off")+'">'+cloudText()+'</div>'
     +'<div class="body">'+body+'</div>'
     +(state.showMenu?menuHTML():"")+(state.pendingLog?levelSheetHTML():"")+(state.detailFor?detailSheetHTML():"")+(state.askApply?applySheetHTML():"");
   bind();
+  if(anim){ state.introDone=true; requestAnimationFrame(function(){ requestAnimationFrame(playIntro); }); }
 }
 
 function bind(){
